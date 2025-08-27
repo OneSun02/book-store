@@ -9,7 +9,8 @@
         "start": "next start",
         "lint": "eslint",
         "seed": "node prisma/seed.js",
-        "postinstall": "prisma generate && npx lightningcss --install"
+        "postinstall:prisma": "prisma generate",
+        "postinstall:lightningcss": "npx lightningcss --install"
     },
     "dependencies": {
         "@prisma/client": "^6.14.0",

@@ -12,7 +12,7 @@ interface ProductListProps {
 
 export default function ProductList({ products, categories }: ProductListProps) {
   const [currentCategory, setCurrentCategory] = useState<string>("");
-  const [visibleCount, setVisibleCount] = useState(6); // hiển thị ban đầu 12 sản phẩm
+  const [visibleCount, setVisibleCount] = useState(6); 
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
   const filteredProducts = currentCategory

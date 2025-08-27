@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 
 // --- fix TS globalThis ---
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
@@ -16,10 +15,10 @@ if (process.env.NODE_ENV !== "production") {
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> } // <-- params is a Promise
+  context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    // await params vì params là Promise
+    // await params vì params là Promise trong App Router
     const { id: idParam } = await context.params;
 
     if (!idParam) {
@@ -44,7 +43,7 @@ export async function GET(
 
     return NextResponse.json({ stock: product.quantity }, { status: 200 });
   } catch (error) {
-    // Tránh typed catch binding; cast to unknown and narrow safely.
+    // Tránh typed catch binding; cast to unknown và narrow safely.
     const err = error as unknown;
     let message = "Unknown error";
 
@@ -54,7 +53,7 @@ export async function GET(
       try {
         message = String(err);
       } catch {
-        // keep default
+        // giữ default
       }
     }
 

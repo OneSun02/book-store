@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 async function main() {
+    await prisma.image.deleteMany({});
+    await prisma.product.deleteMany({});
     const booksData = [{
             name: "Lập Trình Python Cơ Bản",
             author: "Nguyễn Văn A",
@@ -142,36 +144,7 @@ async function main() {
             price: 400000,
             quantity: 35,
             images: ["/images/books/10a.jpg", "/images/books/10b.jpg", "/images/books/10c.jpg", "/images/books/10d.jpg", "/images/books/10e.jpg"]
-        },
-        {
-            name: "The Pragmatic Programmer",
-            author: "Andrew Hunt & David Thomas",
-            publisher: "Addison-Wesley",
-            isbn: "9780201616224",
-            language: "English",
-            publishedYear: 1999,
-            pages: 352,
-            description: "“The Pragmatic Programmer” của Andrew Hunt và David Thomas là cuốn sách hướng dẫn lập trình viên trở nên chuyên nghiệp và hiệu quả hơn. Cuốn sách chia sẻ các nguyên tắc, chiến lược và best practice trong lập trình, từ quản lý mã nguồn, thiết kế phần mềm, đến cách suy nghĩ logic và giải quyết vấn đề. Thông qua các ví dụ thực tiễn, độc giả sẽ học cách viết code rõ ràng, dễ bảo trì và phát triển kỹ năng nghề nghiệp bền vững.",
-            category: "Công nghệ",
-            price: 400000,
-            quantity: 35,
-            images: ["/images/books/10a.jpg", "/images/books/10b.jpg", "/images/books/10c.jpg", "/images/books/10d.jpg", "/images/books/10e.jpg"]
-        },
-        {
-            name: "Đắc Nhân Tâm",
-            author: "Dale Carnegie",
-            publisher: "NXB Trẻ",
-            isbn: "9786041237890",
-            language: "Tiếng Việt",
-            publishedYear: 1936,
-            pages: 320,
-            description: "“Đắc Nhân Tâm” của Dale Carnegie là cuốn sách kinh điển về nghệ thuật giao tiếp, xây dựng mối quan hệ và ảnh hưởng đến người khác. Cuốn sách cung cấp những nguyên tắc thực tiễn để tạo thiện cảm, thuyết phục và hòa hợp trong quan hệ cá nhân lẫn công việc. Qua các ví dụ minh họa sinh động, độc giả sẽ học được cách ứng xử khôn ngoan, phát triển kỹ năng xã hội và thành công trong cuộc sống.",
-            category: "Kỹ năng sống",
-            price: 120000,
-            quantity: 90,
-            images: ["/images/books/7a.jpg", "/images/books/7b.jpg", "/images/books/7c.jpg", "/images/books/7d.jpg", "/images/books/7e.jpg"]
         }
-
     ];
 
     for (const b of booksData) {

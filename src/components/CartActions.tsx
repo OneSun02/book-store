@@ -2,20 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+// import type cho các interface, import value cho hàm
+import type { CartItem, Product } from "@/utils/cart";
 import { addToCartWithQuantity, getCart } from "@/utils/cart";
 import Toast from "./Toast";
 import { FiShoppingCart, FiZap } from "react-icons/fi";
 import styles from "./CartActions.module.css";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number; // tồn kho
-  sold: number;
-  images?: { url: string }[];
-  description?: string;
-}
 
 interface CartActionsProps {
   product: Product;
@@ -29,11 +21,13 @@ export default function CartActions({ product }: CartActionsProps) {
   const router = useRouter();
 
   useEffect(() => {
-    const cart = getCart();
-    const itemInCart = cart.find((p: any) => p.id === product.id);
+    const cart = getCart(); // getCart() already typed to CartItem[]
+    // để TypeScript suy luận loại p là CartItem (không dùng `any`)
+    const itemInCart = cart.find((p) => p.id === product.id);
     const newRemaining = product.quantity - (itemInCart?.quantity || 0);
     setRemaining(newRemaining);
     if (quantity > newRemaining) setQuantity(newRemaining > 0 ? newRemaining : 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id, product.quantity]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
@@ -66,7 +60,7 @@ export default function CartActions({ product }: CartActionsProps) {
             min={1}
             max={remaining}
             onChange={(e) => {
-              let val = parseInt(e.target.value);
+              let val = parseInt(e.target.value, 10);
               if (isNaN(val)) val = 1;
               if (val > remaining) val = remaining;
               if (val < 1) val = 1;
@@ -95,7 +89,8 @@ export default function CartActions({ product }: CartActionsProps) {
           Mua ngay
         </button>
       </div>
-    </div>
 
+      {toastMessage && <Toast message={toastMessage} type={toastType} />}
+    </div>
   );
 }

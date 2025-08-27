@@ -46,7 +46,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           price: product.price,
           quantity: product.quantity,
           sold: product.sold,
-          images: product.images,
+          // ép kiểu về { id, url, productId } cho đúng type
+          images: product.images?.map((img, i) => ({
+            id: i, 
+            url: img.url, 
+            productId: product.id,
+          })) ?? [],
           description: product.description ?? "",
         }}
       />

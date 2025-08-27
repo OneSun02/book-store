@@ -3,13 +3,34 @@ import { PrismaClient } from "@prisma/client";
 import ProductGallery from "@/components/ProductGallery";
 import CartActions from "@/components/CartActions";
 import ProductCard from "@/components/ProductCard";
-import Link from "next/link";
 
-const prisma = new PrismaClient();
+declare global {
+  // mở rộng globalThis để tránh phải cast sang `any`
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined;
+}
 
-export default async function ProductDetail({ params }: { params: { id: string } }) {
+const prisma = globalThis.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  // bây giờ TypeScript biết globalThis.prisma tồn tại
+  globalThis.prisma = prisma;
+}
+
+// Next.js 15: params is a Promise<{ id: string }>
+export default async function ProductDetail({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  if (!id) {
+    return <p style={{ padding: 20 }}>Thiếu ID sản phẩm</p>;
+  }
+
   const product = await prisma.product.findUnique({
-    where: { id: parseInt(params.id) },
+    where: { id: parseInt(id, 10) },
     include: { images: true },
   });
 
@@ -17,21 +38,18 @@ export default async function ProductDetail({ params }: { params: { id: string }
     return <p style={{ padding: 20 }}>Sản phẩm không tồn tại</p>;
   }
 
-  // Lấy các sản phẩm cùng category (khác sản phẩm hiện tại)
   const related = await prisma.product.findMany({
     where: { category: product.category, NOT: { id: product.id } },
     take: 4,
     include: { images: true },
   });
 
-  // Lấy thêm vài sản phẩm khác ngẫu nhiên
   const others = await prisma.product.findMany({
     where: { NOT: { id: product.id }, category: { not: product.category } },
     take: 4,
     include: { images: true },
   });
 
-  // Nối lại: related trước, others sau
   const combinedProducts = [...related, ...others];
 
   return (
@@ -67,22 +85,54 @@ export default async function ProductDetail({ params }: { params: { id: string }
             {product.name}
           </h1>
 
-          <p><strong>Tác giả:</strong> {product.author}</p>
-          <p><strong>Nhà xuất bản:</strong> {product.publisher}</p>
-          <p><strong>Thể loại:</strong> {product.category}</p>
-          {product.language && <p><strong>Ngôn ngữ:</strong> {product.language}</p>}
-          {product.publishedYear && <p><strong>Năm xuất bản:</strong> {product.publishedYear}</p>}
-          {product.pages && <p><strong>Số trang:</strong> {product.pages}</p>}
+          <p>
+            <strong>Tác giả:</strong> {product.author ?? "—"}
+          </p>
+          <p>
+            <strong>Nhà xuất bản:</strong> {product.publisher ?? "—"}
+          </p>
+          <p>
+            <strong>Thể loại:</strong> {product.category ?? "—"}
+          </p>
+          {product.language && (
+            <p>
+              <strong>Ngôn ngữ:</strong> {product.language}
+            </p>
+          )}
+          {product.publishedYear && (
+            <p>
+              <strong>Năm xuất bản:</strong> {product.publishedYear}
+            </p>
+          )}
+          {product.pages && (
+            <p>
+              <strong>Số trang:</strong> {product.pages}
+            </p>
+          )}
 
-          <p style={{ fontSize: 24, fontWeight: 700, color: "#0070f3", margin: "20px 0" }}>
+          <p
+            style={{
+              fontSize: 24,
+              fontWeight: 700,
+              color: "#0070f3",
+              margin: "20px 0",
+            }}
+          >
             {product.price.toLocaleString("vi-VN")}₫
           </p>
 
           <p style={{ fontSize: 14, color: "#555", marginBottom: 20 }}>
-            Còn lại: <strong>{product.quantity}</strong> | Đã bán: <strong>{product.sold}</strong>
+            Còn lại: <strong>{product.quantity}</strong> | Đã bán:{" "}
+            <strong>{product.sold}</strong>
           </p>
 
-          <CartActions product={{ ...product, description: product.description ?? undefined }} />
+          <CartActions
+            product={{
+              ...product,
+              // ensure description undefined instead of null for client props
+              description: product.description ?? undefined,
+            }}
+          />
         </div>
       </div>
 
@@ -131,7 +181,21 @@ export default async function ProductDetail({ params }: { params: { id: string }
             }}
           >
             {combinedProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard
+                key={p.id}
+                product={{
+                  id: p.id,
+                  name: p.name,
+                  price: p.price,
+                  // convert nullable -> undefined to satisfy client prop types
+                  author: p.author ?? undefined,
+                  category: p.category ?? undefined,
+                  quantity: p.quantity,
+                  sold: p.sold,
+                  images: p.images?.map((img) => ({ url: img.url })) ?? [],
+                  description: p.description ?? undefined,
+                }}
+              />
             ))}
           </div>
         </div>

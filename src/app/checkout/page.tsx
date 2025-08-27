@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getCart, clearCart } from "@/utils/cart";
+import { getCart, clearCart, CartItem } from "@/utils/cart";
+import Image from "next/image";
 
 export default function CheckoutPage() {
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
@@ -16,10 +17,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     const buyNowProduct = sessionStorage.getItem("buyNowProduct");
     if (buyNowProduct) {
-      setCart([JSON.parse(buyNowProduct)]);
+      setCart([JSON.parse(buyNowProduct) as CartItem]);
       sessionStorage.removeItem("buyNowProduct");
     } else {
-      const cartData = getCart().filter((p) => p.selected);
+      const cartData = getCart().filter((p: CartItem) => !!p.selected);
       setCart(cartData);
     }
   }, []);
@@ -41,11 +42,13 @@ export default function CheckoutPage() {
         setCart([]);
         setSuccess(true);
       } else {
-        alert("Thanh toán thất bại: " + data.error);
+        alert("Thanh toán thất bại: " + (data.error ?? "Lỗi không xác định"));
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as unknown;
       console.error(err);
-      alert("Có lỗi xảy ra: " + err.message);
+      const message = err instanceof Error ? err.message : String(err);
+      alert("Có lỗi xảy ra: " + message);
     }
   };
 
@@ -82,12 +85,10 @@ export default function CheckoutPage() {
         <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
 
         <h2>Thanh toán thẻ</h2>
-        {/* Icons thẻ */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <img src="/images/icon/visa.png" alt="Visa" style={cardIcon} />
-        <img src="/images/icon/mastercard.png" alt="MasterCard" style={cardIcon} />
-        <img src="/images/icon/amex.png" alt="Amex" style={cardIcon} />
-
+        <div style={{ display: "flex", gap: 10, marginBottom: 10, alignItems: "center" }}>
+          <Image src="/images/icon/visa.png" alt="Visa logo" width={50} height={30} style={{ objectFit: "contain" }} />
+          <Image src="/images/icon/mastercard.png" alt="MasterCard logo" width={50} height={30} style={{ objectFit: "contain" }} />
+          <Image src="/images/icon/amex.png" alt="American Express logo" width={50} height={30} style={{ objectFit: "contain" }} />
         </div>
 
         <input type="text" placeholder="Số thẻ" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} required style={inputStyle} />
@@ -102,19 +103,9 @@ export default function CheckoutPage() {
       </form>
 
       {/* Đơn hàng */}
-      <div
-        style={{
-          flex: 1,
-          minWidth: 280,
-          padding: 20,
-          border: "1px solid #ddd",
-          borderRadius: 12,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          backgroundColor: "#fff",
-        }}
-      >
+      <div style={{ flex: 1, minWidth: 280, padding: 20, border: "1px solid #ddd", borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", backgroundColor: "#fff" }}>
         <h2>Đơn hàng</h2>
-        {cart.map((p) => (
+        {cart.map((p: CartItem) => (
           <div key={p.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
             <span>{p.name} x {p.quantity}</span>
             <span>{(p.price * p.quantity).toLocaleString()}₫</span>
@@ -150,9 +141,3 @@ const submitStyle = {
   cursor: "pointer",
   transition: "background 0.3s",
 } as const;
-
-const cardIcon = {
-  width: 50,
-  height: 30,
-  objectFit: "contain" as const,
-};

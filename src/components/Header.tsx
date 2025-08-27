@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Home, ShoppingCart, CreditCard, Search } from "lucide-react";
 import { getCart } from "@/utils/cart";
+import type { CartItem } from "@/utils/cart";
 
 export default function Header() {
   const pathname = usePathname();
@@ -14,12 +15,13 @@ export default function Header() {
 
   const linkClass = (path: string) => (pathname === path ? "active" : "");
 
-  // Cập nhật số lượng giỏ hàng khi component mount
   useEffect(() => {
-    const cart = getCart();
-    const total = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    const cart = getCart(); // getCart() trả CartItem[]
+    // dùng generic để chỉ rõ kiểu kết quả và cho TS suy luận kiểu phần tử
+    const total = cart.reduce<number>((sum, item) => sum + (item.quantity ?? 0), 0);
     setCartCount(total);
   }, []);
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,19 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCart, updateQuantity, removeFromCart } from "@/utils/cart";
+import { getCart, updateQuantity, removeFromCart, CartItem } from "@/utils/cart";
 import Link from "next/link";
 import Toast from "@/components/Toast";
-
-interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-  maxQuantity: number;
-  selected: boolean;
-}
 
 export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -29,12 +19,12 @@ export default function CartPage() {
       const cartData = getCart();
 
       const updatedCart = await Promise.all(
-        cartData.map(async (item: CartItem) => {
-          const fallbackItem = {
-            id: item.id,
+        cartData.map(async (item) => {
+          const fallbackItem: CartItem = {
+            ...item,
             name: item.name ?? "Không xác định",
             price: item.price ?? 0,
-            image: item.image ?? "/images/default.jpg",
+            image: item.image || "/images/default.jpg",
             quantity: item.quantity ?? 1,
             maxQuantity: item.maxQuantity ?? (item.quantity ?? 1),
             selected: item.selected ?? true,

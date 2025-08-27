@@ -1,8 +1,7 @@
-// prisma/seed.ts
+// prisma/seed.js
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-
 async function main() {
     const booksData = [{
             name: "Lập Trình Python Cơ Bản",
@@ -190,7 +189,7 @@ async function main() {
                 price: b.price,
                 quantity: b.quantity,
                 images: {
-                    create: b.images.map((url) => ({ url }))
+                    create: b.images.map(url => ({ url }))
                 }
             }
         });
@@ -199,5 +198,5 @@ async function main() {
 
 main()
     .then(() => console.log("✅ Seed thành công"))
-    .catch((e) => console.error(e))
+    .catch(e => console.error(e))
     .finally(async() => await prisma.$disconnect());

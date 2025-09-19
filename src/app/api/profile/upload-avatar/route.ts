@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyJwt } from "@/lib/jwt";
-import fs from "fs";
-import path from "path";
+import cloudinary from "@/lib/cloudinary"; // đã config sẵn
 
-interface JwtPayload {
-  id: number;
-}
+interface JwtPayload { id: number }
 
 export async function POST(req: Request) {
   try {
@@ -22,14 +19,18 @@ export async function POST(req: Request) {
     const file = formData.get("avatar") as File;
     if (!file) return NextResponse.json({ success: false, message: "Chưa chọn file" });
 
-    const uploadsDir = path.join(process.cwd(), "public/uploads");
-    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
-    const filePath = path.join(uploadsDir, file.name);
     const buffer = Buffer.from(await file.arrayBuffer());
-    fs.writeFileSync(filePath, buffer);
 
-    const avatarUrl = `/uploads/${file.name}`;
+    // upload lên cloudinary
+    const result = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "avatars" },
+        (error, result) => (error ? reject(error) : resolve(result))
+      );
+      uploadStream.end(buffer);
+    });
+
+    const avatarUrl = result.secure_url;
 
     const updatedUser = await prisma.user.update({
       where: { id: payload.id },

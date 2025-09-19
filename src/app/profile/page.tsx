@@ -203,7 +203,7 @@ const handleReturn = (orderId: number) => handleUpdateOrderStatus(orderId, 'retu
       <div className="flex flex-col md:flex-row gap-6 items-center bg-white p-6 rounded-xl shadow-md">
         <div className="relative w-32 h-32 md:w-40 md:h-40 group">
           <Image
-            src={preview || form.avatarUrl || "/default-avatar.png"}
+            src={preview || form.avatarUrl || "/uploads/default-avatar.jpg"}
             alt="avatar"
             width={160}
             height={160}

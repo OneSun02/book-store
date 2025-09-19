@@ -1,0 +1,54 @@
+.categoryButtons {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    /* responsive: xuống dòng nếu màn hình nhỏ */
+    gap: 10px;
+    /* thay margin-right để khoảng cách đều */
+}
+
+.categoryButtons button {
+    padding: 5px 12px;
+    border: 1px solid #d5d5d5;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(46, 29, 29, 0.1);
+    background-color: #fff;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+}
+
+.categoryButtons button:hover {
+    background-color: #056946;
+    color: #fff;
+    transform: scale(1.05);
+    /* phóng to nhẹ khi hover */
+}
+
+.categoryButtons button::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, #056946, #00bfa5);
+    transition: width 0.3s;
+}
+
+.categoryButtons button.active::after,
+.categoryButtons button:hover::after {
+    width: 100%;
+}
+
+.categoryButtons button.active {
+    background-color: #056946;
+    color: #fff;
+}
+
+.productGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+}

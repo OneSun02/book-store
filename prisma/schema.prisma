@@ -1,0 +1,36 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id            Int            @id @default(autoincrement())
+  name          String
+  author        String         // Tác giả
+  publisher     String         // Nhà xuất bản
+  isbn          String?        @unique // Mã ISBN (nếu có)
+  language      String?        // Ngôn ngữ (VD: Tiếng Việt, English)
+  
+  publishedYear Int?           // Năm xuất bản
+  pages         Int?           // Số trang
+  description   String?        // Giới thiệu nội dung
+  category      String
+
+  price         Int
+  quantity      Int
+  sold          Int            @default(0) // sản phẩm đã bán
+
+  images        ProductImage[]
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  url       String
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+}
+

@@ -1,8 +1,8 @@
 // src/app/api/orders/[id]/cancel/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const orderId = parseInt(params.id);
 
   try {
@@ -11,7 +11,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       include: { items: true },
     });
 
-    if (!order) return NextResponse.json({ success: false, message: "Đơn hàng không tồn tại" });
+    if (!order) 
+      return NextResponse.json({ success: false, message: "Đơn hàng không tồn tại" });
 
     await prisma.$transaction(async (tx) => {
       await tx.order.update({ where: { id: orderId }, data: { status: "CANCELED" } });

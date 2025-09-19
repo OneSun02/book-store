@@ -136,11 +136,11 @@ export default function ProfilePage() {
     e.preventDefault();
     try {
       const formData = new FormData();
-Object.keys(form).forEach((key) => {
-  const k = key as keyof FormDataType; // ép kiểu key
-  if (k === "avatarFile" && form.avatarFile) formData.append("avatar", form.avatarFile);
-  else formData.append(k, form[k] as string); // ép kiểu value thành string
-});
+      Object.keys(form).forEach((key) => {
+        const k = key as keyof FormDataType; // ép kiểu key
+        if (k === "avatarFile" && form.avatarFile) formData.append("avatar", form.avatarFile);
+        else formData.append(k, form[k] as string); // ép kiểu value thành string
+      });
       const res = await fetch("/api/profile/update", { method: "PUT", body: formData });
       const data = await res.json();
       if (data.success) {
@@ -153,27 +153,30 @@ Object.keys(form).forEach((key) => {
     }
   };
 
-  // -------------------- Order handlers --------------------
-  const handleCancel = async (orderId: number) => {
-    const res = await fetch(`/api/orders/${orderId}/cancel`, { method: "PUT" });
-    const data = await res.json();
-    if (data.success) fetchUser();
-    else setToast({ message: data.message, type: "error" });
-  };
+const handleUpdateOrderStatus = async (orderId: number, action: 'cancel' | 'confirm' | 'return') => {
+  const status = action === 'cancel' ? 'CANCELED' :
+                 action === 'return' ? 'RETURNED' : 'CONFIRMED';
 
-  const handleReturn = async (orderId: number) => {
-    const res = await fetch(`/api/orders/${orderId}/return`, { method: "PUT" });
+  try {
+    const res = await fetch("/api/orders", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, status })
+    });
     const data = await res.json();
     if (data.success) fetchUser();
-    else setToast({ message: data.message, type: "error" });
-  };
+    else setToast({ message: data.message || 'Cập nhật thất bại', type: 'error' });
+  } catch (err) {
+    console.error(err);
+    setToast({ message: 'Lỗi kết nối server', type: 'error' });
+  }
+};
 
-  const handleConfirm = async (orderId: number) => {
-    const res = await fetch(`/api/orders/${orderId}/confirm`, { method: "PUT" });
-    const data = await res.json();
-    if (data.success) fetchUser();
-    else setToast({ message: data.message, type: "error" });
-  };
+
+const handleCancel = (orderId: number) => handleUpdateOrderStatus(orderId, 'cancel');
+const handleConfirm = (orderId: number) => handleUpdateOrderStatus(orderId, 'confirm');
+const handleReturn = (orderId: number) => handleUpdateOrderStatus(orderId, 'return');
+
 
   const showConfirm = (orderId: number, action: ConfirmAction) => setConfirmModal({ visible: true, orderId, action });
   const handleConfirmAction = async () => {

@@ -14,9 +14,12 @@
     "dependencies": {
         "@prisma/client": "^6.14.0",
         "@prisma/studio": "^0.511.0",
+        "bcryptjs": "^3.0.2",
         "fuse.js": "^7.1.0",
+        "jsonwebtoken": "^9.0.2",
         "lucide-react": "^0.541.0",
         "next": "15.5.0",
+        "nodemailer": "^7.0.6",
         "react": "19.1.0",
         "react-dom": "19.1.0",
         "react-icons": "^5.5.0"

@@ -1,13 +1,12 @@
-// tailwind.config.js
-import { defineConfig } from 'tailwindcss'
-
-export default defineConfig({
+module.exports = {
   content: [
-    "./src/app/**/*.{js,ts,jsx,tsx}",
-    "./src/components/**/*.{js,ts,jsx,tsx}",
+    './app/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './src/app/**/*.{js,ts,jsx,tsx}',       // nếu bạn sử dụng thư mục src
+    './src/components/**/*.{js,ts,jsx,tsx}'
   ],
   theme: {
     extend: {},
   },
   plugins: [],
-})
+};

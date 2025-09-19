@@ -5,19 +5,15 @@ import CartActions from "@/components/CartActions";
 import ProductCard from "@/components/ProductCard";
 
 declare global {
-  // mở rộng globalThis để tránh phải cast sang `any`
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
 const prisma = globalThis.prisma || new PrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
-  // bây giờ TypeScript biết globalThis.prisma tồn tại
   globalThis.prisma = prisma;
 }
 
-// Next.js 15: params is a Promise<{ id: string }>
 export default async function ProductDetail({
   params,
 }: {
@@ -26,7 +22,7 @@ export default async function ProductDetail({
   const { id } = await params;
 
   if (!id) {
-    return <p style={{ padding: 20 }}>Thiếu ID sản phẩm</p>;
+    return <p className="p-5">Thiếu ID sản phẩm</p>;
   }
 
   const product = await prisma.product.findUnique({
@@ -35,7 +31,7 @@ export default async function ProductDetail({
   });
 
   if (!product) {
-    return <p style={{ padding: 20 }}>Sản phẩm không tồn tại</p>;
+    return <p className="p-5">Sản phẩm không tồn tại</p>;
   }
 
   const related = await prisma.product.findMany({
@@ -53,26 +49,13 @@ export default async function ProductDetail({
   const combinedProducts = [...related, ...others];
 
   return (
-    <div style={{ padding: "20px 40px", maxWidth: 1200, margin: "0 auto" }}>
+    <div className="px-5 md:px-10 max-w-[1200px] mx-auto py-6">
       {/* Thông tin chính */}
-      <div style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
+      <div className="flex flex-wrap gap-10">
         {/* Gallery */}
-        <div style={{ flex: 1, minWidth: 320, position: "relative" }}>
+        <div className="flex-1 min-w-[320px] relative">
           {product.quantity === 0 && (
-            <span
-              style={{
-                position: "absolute",
-                top: 10,
-                left: 10,
-                backgroundColor: "red",
-                color: "#fff",
-                padding: "4px 8px",
-                borderRadius: 4,
-                fontSize: 12,
-                fontWeight: 600,
-                zIndex: 10,
-              }}
-            >
+            <span className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold z-10">
               Hết hàng
             </span>
           )}
@@ -80,10 +63,8 @@ export default async function ProductDetail({
         </div>
 
         {/* Chi tiết sản phẩm */}
-        <div style={{ flex: 1, minWidth: 320 }}>
-          <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 20 }}>
-            {product.name}
-          </h1>
+        <div className="flex-1 min-w-[320px]">
+          <h1 className="text-3xl font-bold mb-5">{product.name}</h1>
 
           <p>
             <strong>Tác giả:</strong> {product.author ?? "—"}
@@ -110,18 +91,11 @@ export default async function ProductDetail({
             </p>
           )}
 
-          <p
-            style={{
-              fontSize: 24,
-              fontWeight: 700,
-              color: "#0070f3",
-              margin: "20px 0",
-            }}
-          >
+          <p className="text-2xl font-bold text-emerald-600 my-5">
             {product.price.toLocaleString("vi-VN")}₫
           </p>
 
-          <p style={{ fontSize: 14, color: "#555", marginBottom: 20 }}>
+          <p className="text-sm text-gray-600 mb-5">
             Còn lại: <strong>{product.quantity}</strong> | Đã bán:{" "}
             <strong>{product.sold}</strong>
           </p>
@@ -129,7 +103,6 @@ export default async function ProductDetail({
           <CartActions
             product={{
               ...product,
-              // ensure description undefined instead of null for client props
               description: product.description ?? undefined,
             }}
           />
@@ -138,48 +111,24 @@ export default async function ProductDetail({
 
       {/* Mô tả */}
       {product.description && (
-        <div style={{ marginTop: 40 }}>
-          <h2
-            style={{
-              fontSize: 22,
-              fontWeight: 600,
-              marginBottom: 10,
-              borderBottom: "2px solid #0070f3",
-              display: "inline-block",
-              paddingBottom: 5,
-            }}
-          >
+        <div className="mt-10">
+          <h2 className="text-xl font-semibold mb-3 border-b-2 border-blue-600 inline-block pb-1">
             Mô tả sản phẩm
           </h2>
-          <p style={{ marginTop: 10, lineHeight: 1.6, color: "#333" }}>
+          <p className="mt-3 leading-relaxed text-gray-800">
             {product.description}
           </p>
         </div>
       )}
 
-      {/* Tất cả sản phẩm khác */}
+      {/* Các sản phẩm khác */}
       {combinedProducts.length > 0 && (
-        <div style={{ marginTop: 60 }}>
-          <h2
-            style={{
-              fontSize: 22,
-              fontWeight: 600,
-              marginBottom: 25,
-              borderBottom: "2px solid #0070f3",
-              display: "inline-block",
-              paddingBottom: 5,
-            }}
-          >
+        <div className="mt-14">
+          <h2 className="text-xl font-semibold mb-6 border-b-2 border-blue-600 inline-block pb-1">
             Các sản phẩm khác
           </h2>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: 20,
-            }}
-          >
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
             {combinedProducts.map((p) => (
               <ProductCard
                 key={p.id}
@@ -187,7 +136,6 @@ export default async function ProductDetail({
                   id: p.id,
                   name: p.name,
                   price: p.price,
-                  // convert nullable -> undefined to satisfy client prop types
                   author: p.author ?? undefined,
                   category: p.category ?? undefined,
                   quantity: p.quantity,

@@ -1,37 +1,44 @@
 "use client";
-
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { FaCheckCircle, FaTimesCircle, FaInfoCircle } from "react-icons/fa";
+import {FiX} from "react-icons/fi";
 
 interface ToastProps {
   message: string;
-  type?: "success" | "error";
+  type?: "success" | "error" | "info";
+  duration?: number;
 }
 
-export default function Toast({ message, type = "success" }: ToastProps) {
+export default function Toast({ message, type = "success", duration = 3000 }: ToastProps) {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShow(false), 2500);
+    const timer = setTimeout(() => setShow(false), duration);
     return () => clearTimeout(timer);
-  }, []);
+  }, [duration]);
 
   if (!show) return null;
 
-  const bgColor = type === "success" ? "#4CAF50" : "#FF4D4F"; // xanh lá | đỏ
+  const typeClasses = {
+    success: "bg-green-500",
+    error: "bg-red-500",
+    info: "bg-blue-500",
+  };
 
-  return (
+  const Icon = type === "error" ? FaTimesCircle : type === "info" ? FaInfoCircle : FaCheckCircle;
+
+  const toastUI = (
     <div
-      style={{
-        position: "fixed",
-        bottom: 20,
-        right: 20,
-        background: bgColor,
-        color: "#fff",
-        padding: "10px 20px",
-        borderRadius: 5,
-      }}
+      className={`fixed top-5 right-5 z-[9999] flex items-center gap-2 px-4 py-2 rounded-md text-white shadow-lg ${typeClasses[type]} animate-slideIn`}
     >
-      {message}
+      <Icon size={18} />
+      <span className="text-sm">{message}</span>
+      <button onClick={() => setShow(false)} className="ml-2 text-white/80 hover:text-white">
+        <FiX size={16} />
+      </button>
     </div>
   );
+
+  return createPortal(toastUI, document.body);
 }

@@ -1,54 +1,110 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { getCart, clearCart, CartItem } from "@/utils/cart";
-import Image from "next/image";
+import { useEffect, useState } from "react";
+import Toast from "@/components/Toast"; // ✅ import toast
+
+type CartItemDB = {
+  id: number;
+  quantity: number;
+  selected: boolean;
+  product: {
+    id: number;
+    name: string;
+    price: number;
+    images: { url: string }[];
+  };
+};
 
 export default function CheckoutPage() {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItemDB[]>([]);
+  const [success, setSuccess] = useState(false);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [success, setSuccess] = useState(false);
 
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+
+  // Load cart chỉ lấy selected = true
   useEffect(() => {
-    const buyNowProduct = sessionStorage.getItem("buyNowProduct");
-    if (buyNowProduct) {
-      setCart([JSON.parse(buyNowProduct) as CartItem]);
-      sessionStorage.removeItem("buyNowProduct");
-    } else {
-      const cartData = getCart().filter((p: CartItem) => !!p.selected);
-      setCart(cartData);
-    }
+    const loadCart = async () => {
+      try {
+        const res = await fetch("/api/cart", { method: "GET", credentials: "include" });
+        if (!res.ok) throw new Error("Không thể lấy giỏ hàng");
+        const data: CartItemDB[] = await res.json();
+
+        const selectedItems = data
+          .filter((item) => item.selected)
+          .map((item) => ({
+            ...item,
+            quantity: Number(item.quantity) || 1,
+            product: {
+              ...item.product,
+              price: Number(item.product.price) || 0,
+              images: item.product.images || [],
+            },
+          }));
+
+        setCart(selectedItems);
+      } catch (err) {
+        console.error("Lỗi load cart:", err);
+        setToast({ message: "Lỗi tải giỏ hàng", type: "error" });
+      }
+    };
+    loadCart();
   }, []);
+
+  // Prefill thông tin từ DB
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        const data = await res.json();
+        if (data.loggedIn && data.user) {
+          setName(data.user.name ?? "");
+          setEmail(data.user.email ?? "");
+          setAddress(data.user.address ?? "");
+        }
+      } catch (err) {
+        console.error("Không thể lấy thông tin user:", err);
+        setToast({ message: "Không thể tải thông tin người dùng", type: "error" });
+      }
+    };
+    loadUser();
+  }, []);
+
+  const total = cart.reduce((sum, item) => sum + item.quantity * item.product.price, 0);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cart.length) return alert("Bạn chưa chọn sản phẩm nào để thanh toán!");
+    if (!cart.length) {
+      setToast({ message: "Bạn chưa chọn sản phẩm nào để thanh toán!", type: "info" });
+      return;
+    }
 
     try {
-      const response = await fetch("/api/checkout", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cart }),
+        body: JSON.stringify({
+          cart: cart.map((c) => ({ id: c.product.id, quantity: c.quantity })),
+          name,
+          address,
+          email,
+        }),
       });
-      const data = await response.json();
 
+      const data = await res.json();
       if (data.success) {
-        clearCart();
         setCart([]);
         setSuccess(true);
+        setToast({ message: "Thanh toán thành công!", type: "success" });
       } else {
-        alert("Thanh toán thất bại: " + (data.error ?? "Lỗi không xác định"));
+        setToast({ message: "Thanh toán thất bại: " + (data.error ?? "Lỗi không xác định"), type: "error" });
       }
-    } catch (error) {
-      const err = error as unknown;
+    } catch (err) {
       console.error(err);
-      const message = err instanceof Error ? err.message : String(err);
-      alert("Có lỗi xảy ra: " + message);
+      setToast({ message: "Có lỗi xảy ra, vui lòng thử lại!", type: "error" });
     }
   };
 
@@ -57,87 +113,76 @@ export default function CheckoutPage() {
       <div style={{ padding: 40, textAlign: "center" }}>
         <h2>Thanh toán thành công!</h2>
         <p>Cảm ơn bạn, {name}.</p>
+        {toast && <Toast message={toast.message} type={toast.type} />}
       </div>
     );
 
-  const total = cart.reduce((sum, p) => sum + p.price * p.quantity, 0);
-
   return (
-    <div style={{ padding: 40, maxWidth: 900, margin: "0 auto", display: "flex", gap: 40, flexWrap: "wrap" }}>
-      {/* Form khách hàng + thẻ */}
+    <div className="p-10 max-w-6xl mx-auto flex flex-wrap gap-8">
+      {/* Form thông tin */}
       <form
         onSubmit={handleCheckout}
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: 20,
-          padding: 20,
-          border: "1px solid #ddd",
-          borderRadius: 12,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          backgroundColor: "#fff",
-        }}
+        className="flex-1 flex flex-col gap-5 p-6 border border-gray-200 rounded-xl shadow-md bg-white"
       >
-        <h2>Thông tin khách hàng</h2>
-        <input type="text" placeholder="Họ và tên" value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} />
-        <input type="text" placeholder="Địa chỉ" value={address} onChange={(e) => setAddress(e.target.value)} required style={inputStyle} />
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
+        <h2 className="text-xl font-semibold text-emerald-600">Thông tin khách hàng</h2>
 
-        <h2>Thanh toán thẻ</h2>
-        <div style={{ display: "flex", gap: 10, marginBottom: 10, alignItems: "center" }}>
-          <Image src="/images/icon/visa.png" alt="Visa logo" width={50} height={30} style={{ objectFit: "contain" }} />
-          <Image src="/images/icon/mastercard.png" alt="MasterCard logo" width={50} height={30} style={{ objectFit: "contain" }} />
-          <Image src="/images/icon/amex.png" alt="American Express logo" width={50} height={30} style={{ objectFit: "contain" }} />
-        </div>
+        <input
+          type="text"
+          placeholder="Họ và tên"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
 
-        <input type="text" placeholder="Số thẻ" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} required style={inputStyle} />
-        <div style={{ display: "flex", gap: 10 }}>
-          <input type="text" placeholder="MM/YY" value={expiry} onChange={(e) => setExpiry(e.target.value)} required style={{ ...inputStyle, flex: 1 }} />
-          <input type="text" placeholder="CVC" value={cvc} onChange={(e) => setCvc(e.target.value)} required style={{ ...inputStyle, flex: 1 }} />
-        </div>
+        <input
+          type="text"
+          placeholder="Địa chỉ"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          required
+          className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
 
-        <button type="submit" style={submitStyle}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+
+        <button
+          type="submit"
+          className="w-full py-3 rounded-lg bg-emerald-600 text-white font-bold text-lg hover:bg-emerald-700 transition"
+        >
           Thanh toán {total.toLocaleString()}₫
         </button>
       </form>
 
       {/* Đơn hàng */}
-      <div style={{ flex: 1, minWidth: 280, padding: 20, border: "1px solid #ddd", borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", backgroundColor: "#fff" }}>
-        <h2>Đơn hàng</h2>
-        {cart.map((p: CartItem) => (
-          <div key={p.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <span>{p.name} x {p.quantity}</span>
-            <span>{(p.price * p.quantity).toLocaleString()}₫</span>
+      <div className="flex-1 min-w-[280px] p-6 border border-gray-200 rounded-xl shadow-md bg-white">
+        <h2 className="text-xl font-semibold text-emerald-600 mb-4">Đơn hàng</h2>
+        {cart.map((item) => (
+          <div key={item.id} className="flex justify-between mb-2 text-gray-700">
+            <span>
+              {item.product.name} × {item.quantity}
+            </span>
+            <span className="font-medium">
+              {(item.product.price * item.quantity).toLocaleString()}₫
+            </span>
           </div>
         ))}
-        <hr style={{ margin: "10px 0" }} />
-        <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold" }}>
+        <hr className="my-3" />
+        <div className="flex justify-between font-bold text-lg text-gray-800">
           <span>Tổng cộng:</span>
           <span>{total.toLocaleString()}₫</span>
         </div>
       </div>
+
+      {/* Hiển thị Toast */}
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 }
-
-const inputStyle = {
-  padding: 12,
-  borderRadius: 6,
-  border: "1px solid #ccc",
-  fontSize: 16,
-  width: "100%",
-  boxSizing: "border-box" as const,
-};
-
-const submitStyle = {
-  padding: "14px 0",
-  borderRadius: 8,
-  border: "none",
-  backgroundColor: "#0070f3",
-  color: "#fff",
-  fontSize: 16,
-  fontWeight: "bold",
-  cursor: "pointer",
-  transition: "background 0.3s",
-} as const;

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import CartActions from "./CartActions";
-import styles from "./ProductCard.module.css"; // import module CSS
 
 interface ProductCardProps {
   product: {
@@ -12,7 +11,7 @@ interface ProductCardProps {
     author?: string;
     category?: string;
     quantity: number;
-    sold: number;
+    sold?: number;
     images?: { url: string }[];
     description?: string;
   };
@@ -20,20 +19,38 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   return (
-    <div className={styles.card}>
-      {product.quantity === 0 && <span className={styles.soldOutLabel}>Hết hàng</span>}
+    <div className="relative flex flex-col justify-between w-full p-2 
+            bg-white rounded-xl shadow-lg 
+            hover:-translate-y-1 transition-transform duration-300">
+      {/* Label Hết hàng */}
+      {product.quantity === 0 && (
+        <span className="absolute top-0 left-0 z-1 bg-red-500 text-white px-2 py-0.5 rounded-sm text-[10px] font-bold">
+          Hết hàng
+        </span>
+      )}
 
-      <Link href={`/product/${product.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+      <Link
+        href={`/product/${product.id}`}
+        className="text-inherit no-underline"
+      >
         <img
           src={product.images?.[0]?.url || "/images/default.jpg"}
           alt={product.name}
-          className={styles.image}
+          className="w-full h-40 object-cover rounded-sm mb-2"
         />
-        <h2 className={styles.title}>{product.name}</h2>
-        {product.author && <p className={styles.author}>{product.author}</p>}
-        {product.category && <p className={styles.soldInfo}>Thể loại: {product.category}</p>}
-        <p className={styles.price}>{product.price.toLocaleString("vi-VN")}₫</p>
-        <p className={styles.soldInfo}>
+        <h2 className="text-base font-bold text-left mb-1">{product.name}</h2>
+        {product.author && (
+          <p className="text-xs font-sans text-black text-left mb-0.5">{product.author}</p>
+        )}
+        {product.category && (
+          <p className="text-xs font-sans text-gray-600 text-left mb-1">
+            Thể loại: {product.category}
+          </p>
+        )}
+        <p className="text-lg text-emerald-700 text-left mb-1">
+          {product.price.toLocaleString("vi-VN")}₫
+        </p>
+        <p className="text-xs font-sans text-gray-600 text-left mb-2">
           Còn lại: {product.quantity} | Đã bán: {product.sold}
         </p>
       </Link>
@@ -46,13 +63,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           price: product.price,
           quantity: product.quantity,
           sold: product.sold,
-          // ép kiểu về { id, url, productId } cho đúng type
-          images: product.images?.map((img, i) => ({
-            id: i, 
-            url: img.url, 
-            productId: product.id,
-          })) ?? [],
-          description: product.description ?? "",
+          images:
+            product.images?.map((img, i) => ({
+              id: i,
+              url: img.url,
+              productId: product.id,
+            })) ?? [],
         }}
       />
     </div>

@@ -1,84 +1,101 @@
-// src/app/api/checkout/route.ts
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { verifyJwt } from "@/lib/jwt";
 
 const prisma = new PrismaClient();
 
-type CartItem = {
-  id: number;
-  quantity: number;
-};
-
 type CheckoutPayload = {
-  cart?: unknown;
+  name?: string;
+  address?: string;
+  email?: string;
 };
 
 export async function POST(req: Request) {
   try {
-    const raw = await req.json().catch(() => null);
-    const body = raw as CheckoutPayload | null;
-
-    if (!body || !Array.isArray(body.cart)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid payload: missing cart array" },
-        { status: 400 }
-      );
+    // ✅ Lấy token từ cookies
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    if (!token) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Sau khi đã kiểm tra Array.isArray, ép kiểu an toàn sang CartItem[]
-    const cart = body.cart as unknown as CartItem[];
+    // Định nghĩa type payload JWT
+    interface JwtPayload {
+      id: number;
+    }
 
-    for (const item of cart) {
-      // validate item shape
-      if (
-        typeof item?.id !== "number" ||
-        typeof item?.quantity !== "number" ||
-        item.quantity <= 0
-      ) {
-        return NextResponse.json(
-          { success: false, error: `Invalid cart item: ${JSON.stringify(item)}` },
-          { status: 400 }
-        );
-      }
+    // Thay thế `any` bằng JwtPayload
+    let payload: JwtPayload;
+    try {
+      payload = verifyJwt(token) as JwtPayload;
+    } catch {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
 
-      // Lấy tồn kho hiện tại
-      const product = (await prisma.product.findUnique({
-        where: { id: item.id },
-        select: { quantity: true, sold: true },
-      })) as { quantity: number; sold: number } | null;
+    const body = (await req.json()) as CheckoutPayload;
 
-      if (!product) {
-        return NextResponse.json(
-          { success: false, error: `Product ID ${item.id} not found` },
-          { status: 404 }
-        );
-      }
+    // ✅ Lấy cart selected của user
+    const cart = await prisma.cart.findMany({
+      where: { userId: payload.id, selected: true },
+      include: { product: true },
+    });
 
-      if (item.quantity > product.quantity) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Sản phẩm ID ${item.id} chỉ còn ${product.quantity} trong kho`,
-          },
-          { status: 400 }
-        );
-      }
+    if (!cart.length) {
+      return NextResponse.json({ success: false, error: "Không có sản phẩm để thanh toán" }, { status: 400 });
+    }
 
-      // Cập nhật tồn kho và số lượng đã bán
-      await prisma.product.update({
-        where: { id: item.id },
+    await prisma.$transaction(async (tx) => {
+      // Tạo order trước
+      const newOrder = await tx.order.create({
         data: {
-          quantity: { decrement: item.quantity },
-          sold: { increment: item.quantity },
+          userId: payload.id,
+          name: body.name ?? "",
+          address: body.address ?? "",
+          email: body.email ?? "",
+          total: cart.reduce((sum, i) => sum + i.quantity * i.product.price, 0),
         },
       });
-    }
+
+      // Cập nhật tồn kho & tạo order items
+      for (const item of cart) {
+        if (item.quantity <= 0) throw new Error(`Sản phẩm ID ${item.productId} số lượng không hợp lệ`);
+
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { quantity: true, sold: true, price: true, name: true },
+        });
+
+        if (!product) throw new Error(`Sản phẩm ID ${item.productId} không tồn tại`);
+        if (item.quantity > product.quantity)
+          throw new Error(`Sản phẩm "${product.name}" chỉ còn ${product.quantity} trong kho`);
+
+        // Cập nhật product
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { quantity: { decrement: item.quantity }, sold: { increment: item.quantity } },
+        });
+
+        // Tạo OrderItem
+        await tx.orderItem.create({
+          data: {
+            orderId: newOrder.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            price: product.price, // giá tại thời điểm mua
+          },
+        });
+      }
+
+      // Xóa cart đã thanh toán
+      await tx.cart.deleteMany({ where: { userId: payload.id, selected: true } });
+    });
+
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    // không cast thành any; log nguyên err cho debugging
     console.error("checkout POST error:", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

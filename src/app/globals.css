@@ -1,79 +1,25 @@
 /* globals.css */
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    color: #000000;
+@import "tailwindcss";
+/* Reset mặc định của browser */
+html, body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden; /* tránh tràn ngang */
+}
+@keyframes slideIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-a {
-    text-decoration: none;
-    color: inherit;
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(120%); }
 }
 
-header {
-    background-color: #fff;
-    border-bottom: 1px solid #ccc;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out forwards;
 }
 
-header .logo {
-    font-size: 24px;
-    font-weight: bold;
-    color: #1e40af;
-    /* xanh */
-}
-
-header nav a {
-    margin-left: 20px;
-    font-size: 16px;
-    color: #333;
-}
-
-header nav a.active {
-    font-weight: bold;
-    color: #1eaf8d;
-}
-
-header input[type="text"] {
-    padding: 6px 12px;
-    border-radius: 9999px;
-    border: 1px solid #ccc;
-    outline: none;
-}
-
-header input[type="text"]:focus {
-    border-color: #1eaf8d;
-    box-shadow: 0 0 0 2px rgba(30, 175, 141, 0.3);
-}
-
-footer {
-    padding: 40px 20px;
-    border-top: 1px solid #ccc;
-    margin-top: 40px;
-    text-align: center;
-    color: #000000;
-    font-family: sans-serif;
-    background: #ffffff;
-}
-
-footer .footer-info {
-    margin-bottom: 10px;
-}
-
-footer .social-links {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-footer .copyright {
-    font-size: 14px;
-    color: #ffffff;
+.animate-fadeOut {
+  animation: fadeOut 0.3s ease-in forwards;
 }

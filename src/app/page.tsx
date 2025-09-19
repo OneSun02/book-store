@@ -15,8 +15,10 @@ export default async function HomePage() {
   const categories = categoriesData.map((c) => c.category || "");
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1 style={{ fontSize: 28, marginBottom: 20 }}>Danh sách sản phẩm</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">
+        Danh sách sản phẩm
+      </h1>
       <ProductList products={products} categories={categories} />
     </div>
   );

@@ -3,8 +3,6 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 async function main() {
-    await prisma.image.deleteMany({});
-    await prisma.product.deleteMany({});
     const booksData = [{
             name: "Lập Trình Python Cơ Bản",
             author: "Nguyễn Văn A",
@@ -144,6 +142,90 @@ async function main() {
             price: 400000,
             quantity: 35,
             images: ["/images/books/10a.jpg", "/images/books/10b.jpg", "/images/books/10c.jpg", "/images/books/10d.jpg", "/images/books/10e.jpg"]
+        },
+        {
+            name: "Đắc Nhân Tâm",
+            author: "Dale Carnegie",
+            publisher: "NXB Trẻ",
+            isbn: "9786053537890",
+            language: "Tiếng Việt",
+            publishedYear: 1936,
+            pages: 320,
+            description: "“Đắc Nhân Tâm” của Dale Carnegie là cuốn sách kinh điển về nghệ thuật giao tiếp, xây dựng mối quan hệ và ảnh hưởng đến người khác. Cuốn sách cung cấp những nguyên tắc thực tiễn để tạo thiện cảm, thuyết phục và hòa hợp trong quan hệ cá nhân lẫn công việc. Qua các ví dụ minh họa sinh động, độc giả sẽ học được cách ứng xử khôn ngoan, phát triển kỹ năng xã hội và thành công trong cuộc sống.",
+            category: "Kỹ năng sống",
+            price: 120000,
+            quantity: 90,
+            images: ["/images/books/7a.jpg", "/images/books/7b.jpg", "/images/books/7c.jpg", "/images/books/7d.jpg", "/images/books/7e.jpg"]
+        },
+        {
+            name: "Think and Grow Rich",
+            author: "Napoleon Hill",
+            publisher: "The Ralston Society",
+            isbn: "9780443314923",
+            language: "English",
+            publishedYear: 1937,
+            pages: 238,
+            description: "“Think and Grow Rich” của Napoleon Hill là cuốn sách kinh điển về phát triển tư duy, thành công và làm giàu. Cuốn sách chia sẻ những nguyên tắc, chiến lược và câu chuyện thực tế về các doanh nhân thành đạt, giúp người đọc hình thành tư duy tích cực, xác định mục tiêu rõ ràng và biến ý tưởng thành kết quả thực tế. Đây là tài liệu giá trị cho bất kỳ ai muốn phát triển sự nghiệp, tài chính và cuộc sống cá nhân.",
+            category: "Kinh tế",
+            price: 180000,
+            quantity: 70,
+            images: ["/images/books/6a.jpg", "/images/books/6b.jpg", "/images/books/6c.jpg", "/images/books/6d.jpg", "/images/books/6e.jpg"]
+        },
+        {
+            name: "Tuổi Thơ Dữ Dội",
+            author: "Phùng Quán",
+            publisher: "NXB Kim Đồng",
+            isbn: "97860423212345",
+            language: "Tiếng Việt",
+            publishedYear: 1988,
+            pages: 400,
+            description: "“Tuổi Thơ Dữ Dội” của Phùng Quán là tập truyện kể về những năm tháng tuổi thơ đầy khốc liệt, dũng cảm và xúc động trong bối cảnh chiến tranh. Qua các câu chuyện về tình bạn, lòng trung thực và ý chí kiên cường của trẻ em, cuốn sách phản ánh sức sống mãnh liệt và tinh thần bất khuất của tuổi trẻ Việt Nam. Đây là tác phẩm giàu giá trị nhân văn và lịch sử, phù hợp cho độc giả mọi lứa tuổi.  Tôi có thể viết luôn phiên bản rút gọn để insert vào database, như các cuốn sách trước, nếu bạn muốn.  ChatGPT có thể mắc lỗi. Hãy kiểm tra các thông tin quan trọng.",
+            category: "Văn học",
+            price: 100000,
+            quantity: 60,
+            images: ["/images/books/5a.jpg", "/images/books/5b.jpg", "/images/books/5c.jpg", "/images/books/5d.jpg", "/images/books/5e.jpg"]
+        },
+        {
+            name: "Lập Trình Python Cơ Bản",
+            author: "Nguyễn Văn A",
+            publisher: "NXB Giáo Dục",
+            isbn: "9786042234567",
+            language: "Tiếng Việt",
+            publishedYear: 2021,
+            pages: 320,
+            description: "Cuốn sách “Lập Trình Python Cơ Bản” là hướng dẫn hoàn chỉnh dành cho những ai muốn bắt đầu học lập trình với Python – một trong những ngôn ngữ lập trình phổ biến và dễ tiếp cận nhất hiện nay.  Thông qua những ví dụ thực tiễn và các bài tập tự luyện, bạn đọc sẽ được:  Hiểu rõ cú pháp cơ bản của Python, từ biến, kiểu dữ liệu, đến cấu trúc điều kiện và vòng lặp.  Làm quen với hàm, module, và các thư viện tiêu chuẩn của Python.  Phát triển tư duy lập trình logic, giải quyết vấn đề và xây dựng các chương trình nhỏ.  Chuẩn bị nền tảng để học tiếp các chủ đề nâng cao như lập trình hướng đối tượng, phát triển web, hoặc xử lý dữ liệu.  Được viết với phong cách dễ hiểu, minh họa sinh động và bài tập thực hành, cuốn sách là người bạn đồng hành lý tưởng cho học sinh, sinh viên, lập trình viên mới, hoặc bất kỳ ai muốn khám phá thế giới lập trình Python.  Điểm nổi bật:  Hướng dẫn từng bước, dễ theo dõi.  Nhiều ví dụ thực tế, áp dụng ngay.  Bài tập luyện tập sau mỗi chương, giúp củng cố kiến thức.",
+            category: "Công nghệ",
+            price: 120000,
+            quantity: 50,
+            images: ["/images/books/1a.jpg", "/images/books/1b.jpg", "/images/books/1c.jpg", "/images/books/1d.jpg", "/images/books/1e.jpg"]
+        },
+        {
+            name: "Clean Code",
+            author: "Robert C. Martin",
+            publisher: "Prentice Hall",
+            isbn: "97804332350884",
+            language: "English",
+            publishedYear: 2008,
+            pages: 464,
+            description: "“Clean Code” là cuốn sách kinh điển về lập trình, giúp lập trình viên viết mã nguồn rõ ràng, dễ hiểu và dễ bảo trì. Cuốn sách trình bày các nguyên tắc, kỹ thuật và best practice để viết code “sạch”, từ cách đặt tên biến, viết hàm, cho tới thiết kế lớp và module. Thông qua các ví dụ minh họa thực tế, bạn đọc sẽ học cách phát hiện và sửa các đoạn code xấu, từ đó nâng cao chất lượng dự án phần mềm. Đây là tài liệu không thể thiếu cho những ai muốn trở thành lập trình viên chuyên nghiệp.",
+            category: "Công nghệ",
+            price: 450000,
+            quantity: 30,
+            images: ["/images/books/2a.jpg", "/images/books/2b.jpg", "/images/books/2c.jpg", "/images/books/2d.jpg", "/images/books/2e.jpg"]
+        },
+        {
+            name: "The Pragmatic Programmer",
+            author: "Andrew Hunt & David Thomas",
+            publisher: "Addison-Wesley",
+            isbn: "97802016326224",
+            language: "English",
+            publishedYear: 1999,
+            pages: 352,
+            description: "“The Pragmatic Programmer” của Andrew Hunt và David Thomas là cuốn sách hướng dẫn lập trình viên trở nên chuyên nghiệp và hiệu quả hơn. Cuốn sách chia sẻ các nguyên tắc, chiến lược và best practice trong lập trình, từ quản lý mã nguồn, thiết kế phần mềm, đến cách suy nghĩ logic và giải quyết vấn đề. Thông qua các ví dụ thực tiễn, độc giả sẽ học cách viết code rõ ràng, dễ bảo trì và phát triển kỹ năng nghề nghiệp bền vững.",
+            category: "Công nghệ",
+            price: 400000,
+            quantity: 35,
+            images: ["/images/books/11a.jpg", "/images/books/11b.jpg", "/images/books/11c.jpg", "/images/books/11d.jpg", "/images/books/11e.jpg"]
         }
     ];
 

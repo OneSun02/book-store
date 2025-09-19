@@ -14,11 +14,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-        <body>
+      <body className="flex flex-col min-h-screen">
         <Header />
-        <main className="min-h-[80vh] px-5">{children}</main>
+        <main className="flex-1">
+          {children}
+        </main>
         <Footer />
-        </body>
+      </body>
     </html>
   );
 }

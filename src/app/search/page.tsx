@@ -35,12 +35,12 @@ export default async function SearchPage({
   const categories = categoriesData.map((c) => c.category || "");
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1 style={{ fontSize: 24, marginBottom: 20 }}>
+    <div className="p-5">
+      <h1 className="text-2xl font-semibold mb-5">
         Kết quả tìm kiếm: &quot;{query}&quot;
       </h1>
       {filteredProducts.length === 0 ? (
-        <p>Không tìm thấy sản phẩm nào.</p>
+        <p className="text-gray-600">Không tìm thấy sản phẩm nào.</p>
       ) : (
         <ProductList products={filteredProducts} categories={categories} />
       )}

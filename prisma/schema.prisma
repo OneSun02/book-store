@@ -6,25 +6,103 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  password    String
+  name        String?
+  role        String    @default("user")
+  isVerified  Boolean   @default(false)
+
+  // Thông tin bổ sung cho profile
+  phone       String?   // số điện thoại
+  address     String?   // địa chỉ
+  avatarUrl   String?   // avatar/profile picture
+  birthday    DateTime? // ngày sinh
+  gender      String?   // giới tính: "male", "female", "other"
+  bio         String?   // mô tả/ngắn gọn về bản thân
+
+  carts       Cart[]
+  orders      Order[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  name      String
+  address   String
+  email     String
+  total     Float
+  status    OrderStatus @default(PENDING) // trạng thái đơn hàng
+  note      String? // ghi chú khách hàng
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user      User           @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+  histories OrderHistory[]
+}
+
+enum OrderStatus {
+  PENDING // chờ xác nhận
+  CONFIRMED // đã xác nhận
+  SHIPPED // đã giao hàng cho đơn vị vận chuyển
+  DELIVERED // đã giao thành công
+  CANCELED // đã hủy
+  RETURNED // khách trả hàng
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Float // giá tại thời điểm mua
+  product   Product @relation(fields: [productId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id])
+}
+
+model OrderHistory {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  status    OrderStatus
+  message   String? // ghi chú khi đổi trạng thái (vd: lý do hủy, lý do trả hàng…)
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Otp {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
 
 model Product {
-  id            Int            @id @default(autoincrement())
-  name          String
-  author        String         // Tác giả
-  publisher     String         // Nhà xuất bản
-  isbn          String?        @unique // Mã ISBN (nếu có)
-  language      String?        // Ngôn ngữ (VD: Tiếng Việt, English)
-  
-  publishedYear Int?           // Năm xuất bản
-  pages         Int?           // Số trang
-  description   String?        // Giới thiệu nội dung
+  id        Int     @id @default(autoincrement())
+  name      String
+  author    String
+  publisher String
+  isbn      String? @unique
+  language  String?
+
+  publishedYear Int?
+  pages         Int?
+  description   String?
   category      String
 
-  price         Int
-  quantity      Int
-  sold          Int            @default(0) // sản phẩm đã bán
+  price    Int
+  quantity Int
+  sold     Int @default(0)
 
-  images        ProductImage[]
+  images     ProductImage[]
+  carts      Cart[]
+  orderItems OrderItem[] // <-- thêm dòng này
 }
 
 model ProductImage {
@@ -34,3 +112,15 @@ model ProductImage {
   productId Int
 }
 
+model Cart {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  selected  Boolean  @default(false)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
